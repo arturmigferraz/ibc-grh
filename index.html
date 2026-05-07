@@ -1091,6 +1091,14 @@ async function gerarRelatorio(){
   const emp=S.empresas.find(e=>e.nome===diagEmpresa)||{};
   const diag=S.diagnosticos[diagEmpresa]||{respostas:{},notas:{}};
   const scores=calcScores(diag.respostas||{});
+
+  // Verificar se há respostas
+  const totalRespostas=Object.keys(diag.respostas||{}).length;
+  if(totalRespostas===0){
+    alert('Ainda não há respostas no diagnóstico. Preenche pelo menos algumas perguntas antes de gerar o relatório.');
+    return;
+  }
+
   const responsavel=document.getElementById('rel-responsavel').value||'–';
   const dataRel=document.getElementById('rel-data').value||new Date().toISOString().slice(0,10);
   const nColab=emp.n_colab||'50–150';
@@ -1195,6 +1203,14 @@ Escreve em português de Portugal, tom profissional mas acessível. Usa números
         messages:[{role:'user',content:prompt}]
       })
     });
+
+    if(!response.ok){
+      const errText=await response.text();
+      output.className='report-stream';
+      output.textContent=`Erro da API (${response.status}): ${errText}\n\nVerifica se a API key está correta e tem créditos disponíveis.`;
+      document.getElementById('btn-gerar').disabled=false;
+      return;
+    }
 
     output.className='report-stream';
     output.textContent='';
